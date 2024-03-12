@@ -4,4 +4,4 @@ langchain-text-splitters
 icecream
 flask
 pandas
-tensorflow-cpu
+torch

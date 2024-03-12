@@ -56,13 +56,11 @@ def _get_summary(text: str) -> str:
 def get_attributes_for_one(text: str, attrs: list[str] = [SUMMARY, SENTIMENT, KEYWORDS]) -> dict:    
     res = {}
     if SUMMARY in attrs:
-        # print('running summary')
         res[SUMMARY] = _get_summary(text)
-    if SENTIMENT in attrs:
-        # print('running sentiment')
-        res[SENTIMENT] = _get_classification(text, SENTIMENT_LABELS)
+    # disabling sentiment for now
+    # if SENTIMENT in attrs:
+    #     res[SENTIMENT] = _get_classification(text, SENTIMENT_LABELS)
     if KEYWORDS in attrs:
-        # print('running keywords')
         res[KEYWORDS] = _extract_keywords(text)
     return res
 
