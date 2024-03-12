@@ -1,0 +1,7 @@
+transformers 
+langchain 
+langchain-text-splitters 
+icecream
+flask
+pandas
+tensorflow-cpu
