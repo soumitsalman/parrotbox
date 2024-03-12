@@ -1,3 +1,4 @@
+import os
 from flask import Flask, jsonify, request
 from http import HTTPStatus
 from icecream import ic
@@ -9,7 +10,6 @@ app = Flask(__name__)
 @app.route("/text/attributes", methods=["POST"])
 def extract_attributes():
     return _extract_attributes(request.json, [nlpdriver.SENTIMENT, nlpdriver.SUMMARY, nlpdriver.KEYWORDS])
-    # return "got it", HTTPStatus.OK
 
 def _extract_attributes(body, attrs: list[str]):
     try:
@@ -21,6 +21,5 @@ def _extract_attributes(body, attrs: list[str]):
     except Exception as err:
         return f"{err}", HTTPStatus.INTERNAL_SERVER_ERROR
 
-
 if __name__ == '__main__':
-    app.run(port = 8080)
+    app.run()

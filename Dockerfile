@@ -1,10 +1,13 @@
-FROM python:3.11
+FROM python:3.11-slim
 
 WORKDIR /app 
 COPY . . 
 
 RUN pip install -r requirements.txt
 
-EXPOSE 8080
+EXPOSE 8000
 
-CMD [ "python3", "./server.py" ]
+ENV FLASK_APP=server.py
+ENV FLASK_RUN_HOST=0.0.0.0
+
+CMD [ "flask", "run" ]
