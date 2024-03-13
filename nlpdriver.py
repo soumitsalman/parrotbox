@@ -29,7 +29,7 @@ CAPABILITIES = [SUMMARY, SENTIMENT, KEYWORDS]
 
 classifier = pipeline("zero-shot-classification", model=MODEL[SENTIMENT], max_length=MAX_CHUNK_SIZE[SENTIMENT])
 keyword_extractor = pipeline("text2text-generation", model=MODEL[KEYWORDS], max_new_tokens = 50)
-summarizer = pipeline("summarization", model=MODEL[SUMMARY], max_length = 120)
+summarizer = summarizer = pipeline("text2text-generation", model=MODEL[SUMMARY], max_length = 100) 
 
 def _create_splitter(model: str, chunk_size: int):
     return RecursiveCharacterTextSplitter.from_huggingface_tokenizer(
