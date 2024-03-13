@@ -1,0 +1,43 @@
+name: Trigger auto deployment for parrotboxservice
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ main ]
+    paths:
+    - '**'
+    - '.github/workflows/parrotboxservice-AutoDeployTrigger-0dad286a-422e-4a01-9fd8-9678f535c2e2.yml'
+
+  # Allow manual trigger 
+  workflow_dispatch:
+      
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.PARROTBOXSERVICE_AZURE_CREDENTIALS }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          appSourcePath: ${{ github.workspace }} 
+          registryUrl: docker.io
+          registryUsername: ${{ secrets.PARROTBOXSERVICE_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.PARROTBOXSERVICE_REGISTRY_PASSWORD }}
+          containerAppName: parrotboxservice
+          resourceGroup: brandy.io_dev
+          imageToBuild: soumitsr/parrotboxservice:${{ github.sha }}
+          
+            
+
+     
+
