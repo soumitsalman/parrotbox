@@ -10,4 +10,4 @@ EXPOSE 8000
 ENV FLASK_APP=server.py
 ENV FLASK_RUN_HOST=0.0.0.0
 
-CMD [ "flask", "run" ]
+CMD [ "flask", "run" , "-p", "8000"]

@@ -8,8 +8,15 @@ import nlpdriver
 app = Flask(__name__)
 
 @app.route("/text/attributes", methods=["POST"])
-def extract_attributes():
-    return _extract_attributes(request.json, [nlpdriver.SENTIMENT, nlpdriver.SUMMARY, nlpdriver.KEYWORDS])
+def extract_all_attributes():
+    return _extract_attributes(request.json, nlpdriver.CAPABILITIES)
+
+@app.route("/text/<attribute>", methods=["POST"])
+def extract_one_attribute(attribute:str):
+    if attribute in nlpdriver.CAPABILITIES:
+        return _extract_attributes(request.json, [attribute])
+    else:
+        "", HTTPStatus.NOT_IMPLEMENTED
 
 def _extract_attributes(body, attrs: list[str]):
     try:
