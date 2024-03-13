@@ -1,9 +1,8 @@
 from transformers import AutoTokenizer, pipeline
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 import pandas as pd
-import logging
-
-
+from itertools import chain
+from collections import Counter
 
 # classification categories
 SENTIMENT_LABELS = ["positive", "negative", "neutral"]
@@ -12,14 +11,14 @@ SENTIMENT_LABELS = ["positive", "negative", "neutral"]
 EMBEDDINGS, SUMMARY, SENTIMENT, KEYWORDS = "embeddings", "summary", "sentiment", "keywords"
 MAX_CHUNK_SIZE = {
     EMBEDDINGS: 512,
-    SUMMARY: 4096,
+    SUMMARY: 512,
     SENTIMENT: 512,
-    KEYWORDS: 1024
+    KEYWORDS: 512
 }
 MODEL = {
     EMBEDDINGS: "sentence-transformers/all-MiniLM-L6-v2",
-    SUMMARY: "google/flan-t5-base",
-    SENTIMENT: "MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli",
+    SUMMARY: "google/flan-t5-small",
+    SENTIMENT: "distilbert/distilbert-base-uncased-finetuned-sst-2-english", #"MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli",
     KEYWORDS: "ilsilfverskiold/tech-keywords-extractor"
 }
 _MAX_TEXT_LENGTH = 4096 * 4
@@ -27,9 +26,11 @@ _MAX_TEXT_LENGTH = 4096 * 4
 # driver capabilities
 CAPABILITIES = [SUMMARY, SENTIMENT, KEYWORDS]
 
-classifier = pipeline("zero-shot-classification", model=MODEL[SENTIMENT], max_length=MAX_CHUNK_SIZE[SENTIMENT])
-keyword_extractor = pipeline("text2text-generation", model=MODEL[KEYWORDS], max_new_tokens = 50)
-summarizer = summarizer = pipeline("text2text-generation", model=MODEL[SUMMARY], max_length = 100) 
+classifier = pipeline("text-classification", model=MODEL[SENTIMENT], max_length=MAX_CHUNK_SIZE[SENTIMENT])
+# commented out text for MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli
+# classifier = pipeline("zero-shot-classification", model=MODEL[SENTIMENT], max_length=MAX_CHUNK_SIZE[SENTIMENT])
+keyword_extractor = pipeline("text2text-generation", model=MODEL[KEYWORDS], max_new_tokens = 20)
+summarizer = pipeline("text2text-generation", model=MODEL[SUMMARY], max_length = 50)
 
 def _create_splitter(model: str, chunk_size: int):
     return RecursiveCharacterTextSplitter.from_huggingface_tokenizer(
@@ -37,24 +38,24 @@ def _create_splitter(model: str, chunk_size: int):
         chunk_size = chunk_size
     )
 
-def _get_classification(text: str, labels: list[str] = SENTIMENT_LABELS):    
-    # determine sentiment and topic  
-    # classifier = pipeline("zero-shot-classification", model=MODEL[SENTIMENT], max_length=MAX_CHUNK_SIZE[SENTIMENT])
-    outputs = [classifier(c, labels, multi_label=False) for c in _create_splitter(MODEL[SENTIMENT], MAX_CHUNK_SIZE[SENTIMENT]).split_text(text)]
-    data_list = [{sentiment: score for sentiment, score in zip(output['labels'], output['scores'])} for output in outputs]
-    max_label = pd.DataFrame(data_list, columns = labels).sum(axis = 0).idxmax()
-    return max_label
+def _get_sentiment(text: str):     
+    chunks = [c for c in _create_splitter(MODEL[SENTIMENT], MAX_CHUNK_SIZE[SENTIMENT]).split_text(text)]
+    return Counter(item['label'] for item in classifier(chunks)).most_common(1)[0][0].capitalize()
+    # commented out text for MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli
+    # data_list = [{sentiment: score for sentiment, score in zip(output['labels'], output['scores'])} for output in classifier(chunks, labels, multi_label=False)]
+    # max_label = pd.DataFrame(data_list, columns = labels).sum(axis = 0).idxmax()
+    # return max_label
 
 def _extract_keywords(text: str) -> list[str]:
     keywords = set()
-    # keyword_extractor = pipeline("text2text-generation", model=MODEL[KEYWORDS], max_new_tokens = 5)
-    for chunk in _create_splitter(MODEL[KEYWORDS], MAX_CHUNK_SIZE[KEYWORDS]).split_text(text):
-        keywords.update(keyword_extractor(chunk)[0]['generated_text'].split(', '))
-    return [keyword.lower() for keyword in keywords]
+    chunks = [chunk for chunk in _create_splitter(MODEL[KEYWORDS], MAX_CHUNK_SIZE[KEYWORDS]).split_text(text)]
+    keyword_list = [gen_text['generated_text'].split(",") for gen_text in  keyword_extractor(chunks)]
+    keywords.update(chain(*keyword_list))
+    return [keyword.strip().lower() for keyword in keywords]
 
 def _get_summary(text: str) -> str:
-    # summarizer = pipeline("text2text-generation", model=MODEL[SUMMARY], max_length = 100) 
-    return summarizer("summarize: " + text)[0]['generated_text']
+    chunks = ["summarize: " + chunk for chunk in _create_splitter(MODEL[SUMMARY], MAX_CHUNK_SIZE[SUMMARY]).split_text(text)]
+    return " ".join([gen_text['generated_text'] for gen_text in summarizer(chunks)] )
 
 def get_attributes_for_one(text: str, attrs: list[str] = CAPABILITIES) -> dict:    
     res = {}
@@ -63,7 +64,7 @@ def get_attributes_for_one(text: str, attrs: list[str] = CAPABILITIES) -> dict:
     if SUMMARY in attrs:
         res[SUMMARY] = _get_summary(text)
     if SENTIMENT in attrs:
-        res[SENTIMENT] = _get_classification(text, SENTIMENT_LABELS)
+        res[SENTIMENT] = _get_sentiment(text)
     if KEYWORDS in attrs:
         res[KEYWORDS] = _extract_keywords(text)
     return res
