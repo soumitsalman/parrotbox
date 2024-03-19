@@ -1,4 +1,5 @@
 from transformers import AutoTokenizer, pipeline
+from sentence_transformers import SentenceTransformer
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 import pandas as pd
 from itertools import chain
@@ -24,13 +25,14 @@ MODEL = {
 _MAX_TEXT_LENGTH = 4096 * 4
 
 # driver capabilities
-CAPABILITIES = [SUMMARY, SENTIMENT, KEYWORDS]
+CAPABILITIES = [SUMMARY, SENTIMENT, KEYWORDS, EMBEDDINGS]
 
-classifier = pipeline("text-classification", model=MODEL[SENTIMENT], max_length=MAX_CHUNK_SIZE[SENTIMENT])
 # commented out text for MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli
 # classifier = pipeline("zero-shot-classification", model=MODEL[SENTIMENT], max_length=MAX_CHUNK_SIZE[SENTIMENT])
+classifier = pipeline("text-classification", model=MODEL[SENTIMENT], max_length=MAX_CHUNK_SIZE[SENTIMENT])
 keyword_extractor = pipeline("text2text-generation", model=MODEL[KEYWORDS], max_new_tokens = 20)
 summarizer = pipeline("text2text-generation", model=MODEL[SUMMARY], max_length = 50)
+embedder = SentenceTransformer(MODEL[EMBEDDINGS])
 
 def _create_splitter(model: str, chunk_size: int):
     return RecursiveCharacterTextSplitter.from_huggingface_tokenizer(
@@ -57,6 +59,11 @@ def _get_summary(text: str) -> str:
     chunks = ["summarize: " + chunk for chunk in _create_splitter(MODEL[SUMMARY], MAX_CHUNK_SIZE[SUMMARY]).split_text(text)]
     return " ".join([gen_text['generated_text'] for gen_text in summarizer(chunks)] )
 
+def _get_embeddings(text: str) -> list[dict]:
+    chunks = [chunk for chunk in _create_splitter(MODEL[EMBEDDINGS], MAX_CHUNK_SIZE[EMBEDDINGS]).split_text(text)]
+    embeddings = embedder.encode(chunks).tolist()
+    return [{"text": chunks[i], "embeddings": embeddings[i]} for i in range(len(chunks))]
+
 def get_attributes_for_one(text: str, attrs: list[str] = CAPABILITIES) -> dict:    
     res = {}
     # do not process things longer than the max_length
@@ -67,6 +74,8 @@ def get_attributes_for_one(text: str, attrs: list[str] = CAPABILITIES) -> dict:
         res[SENTIMENT] = _get_sentiment(text)
     if KEYWORDS in attrs:
         res[KEYWORDS] = _extract_keywords(text)
+    if EMBEDDINGS in attrs:
+        res[EMBEDDINGS] = _get_embeddings(text)
     return res
 
 def get_attributes_for_many(docs: list[str], attrs: list[str] = CAPABILITIES) -> list[dict]:
