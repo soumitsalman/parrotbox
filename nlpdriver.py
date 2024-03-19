@@ -19,7 +19,7 @@ MAX_CHUNK_SIZE = {
 MODEL = {
     EMBEDDINGS: "sentence-transformers/all-MiniLM-L6-v2",
     SUMMARY: "google/flan-t5-small",
-    SENTIMENT: "distilbert/distilbert-base-uncased-finetuned-sst-2-english", #"MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli",
+    SENTIMENT: "SamLowe/roberta-base-go_emotions", # "distilbert/distilbert-base-uncased-finetuned-sst-2-english", #"MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli",
     KEYWORDS: "ilsilfverskiold/tech-keywords-extractor"
 }
 _MAX_TEXT_LENGTH = 4096 * 4
