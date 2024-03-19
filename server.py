@@ -7,10 +7,13 @@ import nlpdriver
 
 app = Flask(__name__)
 
+# this is for non embeddings attributes
 @app.route("/text/attributes", methods=["POST"])
 def extract_all_attributes():
-    return _extract_attributes(request.json, nlpdriver.CAPABILITIES)
+    return _extract_attributes(request.json, [nlpdriver.SUMMARY, nlpdriver.SENTIMENT, nlpdriver.KEYWORDS])
 
+
+# this is for any specified attribute like embeddings, summary, sentiment, keywords
 @app.route("/text/<attribute>", methods=["POST"])
 def extract_one_attribute(attribute:str):
     if attribute in nlpdriver.CAPABILITIES:
