@@ -11,13 +11,13 @@ SENTIMENT_LABELS = ["positive", "negative", "neutral"]
 # functionalities and their model definition
 EMBEDDINGS, SUMMARY, SENTIMENT, KEYWORDS = "embeddings", "summary", "sentiment", "keywords"
 MAX_CHUNK_SIZE = {
-    EMBEDDINGS: 512,
+    EMBEDDINGS: 8192,
     SUMMARY: 512,
     SENTIMENT: 512,
     KEYWORDS: 512
 }
 MODEL = {
-    EMBEDDINGS: "sentence-transformers/all-MiniLM-L6-v2",
+    EMBEDDINGS: "jinaai/jina-embeddings-v2-base-en", # "sentence-transformers/all-MiniLM-L6-v2",
     SUMMARY: "google/flan-t5-small",
     SENTIMENT: "SamLowe/roberta-base-go_emotions", # "distilbert/distilbert-base-uncased-finetuned-sst-2-english", #"MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli",
     KEYWORDS: "ilsilfverskiold/tech-keywords-extractor"
@@ -59,12 +59,14 @@ def _get_summary(text: str) -> str:
     chunks = ["summarize: " + chunk for chunk in _create_splitter(MODEL[SUMMARY], MAX_CHUNK_SIZE[SUMMARY]).split_text(text)]
     return " ".join([gen_text['generated_text'] for gen_text in summarizer(chunks)] )
 
-def _get_embeddings(text: str) -> list[dict]:
-    chunks = [chunk for chunk in _create_splitter(MODEL[EMBEDDINGS], MAX_CHUNK_SIZE[EMBEDDINGS]).split_text(text)]
-    embeddings = embedder.encode(chunks).tolist()
-    return [{"text": chunks[i], "embeddings": embeddings[i]} for i in range(len(chunks))]
+def get_embeddings(text: list[str]) -> list[list[float]]:
+    # this is currently commented out since this is using an embedding model that can take larger text size
+    # chunks = [chunk for chunk in _create_splitter(MODEL[EMBEDDINGS], MAX_CHUNK_SIZE[EMBEDDINGS]).split_text(text)]
+    # embeddings = embedder.encode(chunks).tolist()
+    # return [{"text": chunks[i], "embeddings": embeddings[i]} for i in range(len(chunks))]
+    return [{ EMBEDDINGS: emb } for emb in embedder.encode(text).tolist()]
 
-def get_attributes_for_one(text: str, attrs: list[str] = CAPABILITIES) -> dict:    
+def _get_attributes_for_one(text: str, attrs: list[str] = CAPABILITIES) -> dict:    
     res = {}
     # do not process things longer than the max_length
     text = text[:_MAX_TEXT_LENGTH]
@@ -74,9 +76,9 @@ def get_attributes_for_one(text: str, attrs: list[str] = CAPABILITIES) -> dict:
         res[SENTIMENT] = _get_sentiment(text)
     if KEYWORDS in attrs:
         res[KEYWORDS] = _extract_keywords(text)
-    if EMBEDDINGS in attrs:
-        res[EMBEDDINGS] = _get_embeddings(text)
+    # if EMBEDDINGS in attrs:
+    #     res[EMBEDDINGS] = _get_embeddings(text)
     return res
 
-def get_attributes_for_many(docs: list[str], attrs: list[str] = CAPABILITIES) -> list[dict]:
-    return [get_attributes_for_one(doc, attrs) for doc in docs]
+def get_attributes(docs: list[str], attrs: list[str] = CAPABILITIES) -> list[dict]:
+    return [_get_attributes_for_one(doc, attrs) for doc in docs]
