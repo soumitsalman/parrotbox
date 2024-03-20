@@ -17,7 +17,7 @@ MAX_CHUNK_SIZE = {
     KEYWORDS: 512
 }
 MODEL = {
-    EMBEDDINGS: "jinaai/jina-embeddings-v2-base-en", # "sentence-transformers/all-MiniLM-L6-v2",
+    EMBEDDINGS: "jinaai/jina-embeddings-v2-small-en", # "sentence-transformers/all-MiniLM-L6-v2",
     SUMMARY: "google/flan-t5-small",
     SENTIMENT: "SamLowe/roberta-base-go_emotions", # "distilbert/distilbert-base-uncased-finetuned-sst-2-english", #"MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli",
     KEYWORDS: "ilsilfverskiold/tech-keywords-extractor"
