@@ -29,7 +29,7 @@ def _run_nlpdriver(body, attrs: str|list[str]):
     try:
         start_time = time.time()
         if attrs == nlpdriver.EMBEDDINGS:
-            res = nlpdriver.get_embeddings(body)
+            res = nlpdriver.create_embeddings(body)
         else:
             res = nlpdriver.get_attributes(body, attrs)            
         duration = time.time() - start_time
