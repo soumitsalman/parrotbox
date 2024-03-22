@@ -15,7 +15,7 @@ MAX_CHUNK_SIZE = {
     EMBEDDINGS: 8192,
     SUMMARY: 512,
     SENTIMENT: 512,
-    KEYWORDS: 2048
+    KEYWORDS: 1024
 }
 MODEL = {
     EMBEDDINGS: "jinaai/jina-embeddings-v2-small-en", # "sentence-transformers/all-MiniLM-L6-v2",
