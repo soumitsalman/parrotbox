@@ -24,7 +24,9 @@ MODEL = {
     KEYWORDS: "ilsilfverskiold/tech-keywords-extractor"
 }
 # _MAX_TEXT_LENGTH = 4096 * 4
+_MIN_TEXT_LEN_FOR_SUMMARY = 400 # roughly 75 words
 _MIN_KEYWORD_LEN = 3
+_MAX_KEYWORD_LEN = 25
 _MAX_CHUNKS=10
 
 # driver capabilities
@@ -60,13 +62,15 @@ def get_keywords(texts: list[str]) -> list[list[str]]:
     splitter = _create_splitter(MODEL[KEYWORDS], MAX_CHUNK_SIZE[KEYWORDS])
     keywords_list = []
 
+    within_size = lambda word: (len(word) >= _MIN_KEYWORD_LEN) and (len(word) <= _MAX_KEYWORD_LEN)
+
     ic(f"creating keywords for {len(texts)} items")
     for text in texts:
         # current_set = set()
         chunks = [chunk for chunk in splitter.split_text(text)][:_MAX_CHUNKS]
         # current_words = [gen_text['generated_text'].split(",") for gen_text in  keyword_extractor(chunks)]
         current_words = chain(*[keyword_extractor(chunk)[0]['generated_text'].split(",") for chunk in chunks])
-        current_words = list({word.strip().lower() for word in current_words if len(word.strip()) >= _MIN_KEYWORD_LEN})
+        current_words = list({word.strip().lower() for word in current_words if within_size(word.strip()) })
         # current_set.update(chain(*current_words))
         keywords_list.append(current_words)
     return keywords_list
@@ -79,11 +83,14 @@ def create_summaries(texts: list[str]) -> list[str]:
     
     ic(f"creating summaries for {len(texts)} items")
     for text in texts:
-        chunks = ["summarize: " + chunk for chunk in splitter.split_text(text)][:_MAX_CHUNKS]
-        # run it one item by one item
-        chunk_summaries = [summarizer(chunk)[0]['generated_text'] for chunk in chunks]
-        fix_cs = lambda cs: cs[len("Summary:"):].strip() if (cs.startswith("Summary:") or cs.startswith("summary:")) else cs.strip()
-        summaries.append(" ".join([fix_cs(cs) for cs in chunk_summaries]).strip())
+        if len(text) <= _MIN_TEXT_LEN_FOR_SUMMARY:
+            summaries.append(text)
+        else:
+            chunks = ["summarize: " + chunk for chunk in splitter.split_text(text)][:_MAX_CHUNKS]
+            # run it one item by one item
+            chunk_summaries = [summarizer(chunk)[0]['generated_text'] for chunk in chunks]
+            fix_cs = lambda cs: cs[len("Summary:"):].strip() if (cs.startswith("Summary:") or cs.startswith("summary:")) else cs.strip()
+            summaries.append(" ".join([fix_cs(cs) for cs in chunk_summaries]).strip())
     return summaries
 
 def create_embeddings(texts: list[str]) -> list[list[float]]:
