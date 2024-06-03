@@ -3,4 +3,4 @@
 .env
 models
 .locks
-*github_to_docker.yml
+
