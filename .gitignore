@@ -1,3 +1,6 @@
 /.venv
 /__pycache__
 .env
+models
+.locks
+*github_to_docker.yml

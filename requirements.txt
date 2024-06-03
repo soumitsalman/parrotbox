@@ -1,9 +1,9 @@
-transformers 
-sentence-transformers
 langchain 
 langchain-text-splitters 
-icecream
-flask
-pandas
-torch
+llama-cpp-python
+fastapi
 numpy
+pydantic
+tiktoken
+retry
+icecream
