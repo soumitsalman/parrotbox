@@ -1,0 +1,48 @@
+name: Deploy to Hugging Face Spaces
+
+on:
+  push:
+    branches:
+      - main  # Set this to the branch you want to deploy from
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.8'  # Specify your Python version here
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install huggingface_hub  # Install the Hugging Face Hub library
+
+    - name: Configure Hugging Face credentials
+      env:
+        HF_TOKEN: ${{ secrets.HUGGINGFACE_TOKEN }}
+      run: |
+        echo "machine api.huggingface.co" >> ~/.netrc
+        echo "  login $HF_TOKEN" >> ~/.netrc
+
+    - name: Ensure Hugging Face Space exists
+      run: |
+        huggingface-cli repo create parrotbox --type space --organization soumitsr --private --exist-ok
+
+    - name: Configure Git for Hugging Face
+      run: |
+        git config --global user.email "soumitsr@gmail.com"
+        git config --global user.name "Soumit Salman Rahman"
+
+    - name: Add Hugging Face remote and push changes
+      run: |
+        git init
+        git remote add hf https://api.huggingface.co/spaces/soumitsr/parrotbox.git
+        git add .
+        git commit -m "Deploy to Hugging Face Spaces"
+        git push hf main:main --force
+
