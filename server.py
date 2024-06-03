@@ -55,5 +55,6 @@ app = FastAPI(
 )
 
 @app.post("/embedding")
+@app.get("/embedding")
 def create_embeddings(data: InputData):
     return embeddings.create_embeddings(data.inputs, data.embeddings_type)
