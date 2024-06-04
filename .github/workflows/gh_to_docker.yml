@@ -12,21 +12,10 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
-env:
-  REGISTRY: docker.io
-  IMAGE_NAME: parrotbox
-
 jobs:
   build:
 
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-      # This is used to complete the identity challenge
-      # with sigstore/fulcio when running outside of PRs.
-      id-token: write
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -34,20 +23,18 @@ jobs:
       - name: Set date as image tag
         run: echo "TAG=$(date +'%Y%m%d')" >> $GITHUB_ENV
 
-      - name: Publish Docker Image
+      - name: Publish Docker
         # You may pin to the exact commit or the version.
-        # uses: tinact/docker.image@967cfb94f430df447cb626971b1999413c73f3cc
-        uses: tinact/docker.image@1.0.2
+        # uses: elgohr/Publish-Docker-Github-Action@eb53b3ec07136a6ebaed78d8135806da64f7c7e2
+        uses: elgohr/Publish-Docker-Github-Action@v5
         with:
-          # So that an image can be assigned by name, a unique name must be assigned.
-          image_name: $IMAGE_NAME
-          # Each image should have a tag for unique identification.
-          image_tag: $TAG          
-          # URL of a Docker compatible registry for pushing a Docker image.
-          registry: $REGISTRY
-          # Registry Username
-          registry_username: ${{ secrets.PARROTBOXSERVICE_REGISTRY_USERNAME }}
-          # Registry Password. This should be stored in a Secret on Github.
-          registry_password: ${{ secrets.PARROTBOXSERVICE_REGISTRY_PASSWORD }}
-          # Storage location of the Docker file.
-          dockerfile: Dockerfile
+          # The name of the image you would like to push
+          name: ${{ secrets.PARROTBOXSERVICE_REGISTRY_USERNAME }}/parrotbox
+          # The login username for the registry
+          username: ${{ secrets.PARROTBOXSERVICE_REGISTRY_USERNAME }}
+          # The login password for the registry
+          password: ${{ secrets.PARROTBOXSERVICE_REGISTRY_PASSWORD }}  
+          registry: docker.io        
+          default_branch: main          
+          dockerfile: Dockerfile          
+          tags: "${{ env.TAG }},latest"
