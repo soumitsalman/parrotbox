@@ -9,7 +9,7 @@ from icecream import ic
 MODEL = os.getenv("EMBEDDER_MODEL")
 CONTEXT_WINDOW = int(os.getenv("EMBEDDER_CTX"))
 
-llm = Llama(model_path=ic(MODEL), embedding=True, verbose=False, n_ctx=ic(CONTEXT_WINDOW))
+llm = Llama(model_path=MODEL, embedding=True, verbose=False, n_ctx=CONTEXT_WINDOW)
 encoding = tiktoken.get_encoding("cl100k_base")
 
 def create_embeddings(texts: str|list[str], task_type: str = None) -> list|None:   
