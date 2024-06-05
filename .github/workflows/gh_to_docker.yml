@@ -11,6 +11,8 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    env:
+      IMG_NAME: ${{ secrets.DOCKER_USERNAME }}/parrotbox
 
     steps:
     - uses: actions/checkout@v4    
@@ -22,7 +24,7 @@ jobs:
       run:  echo "IMG_TAG=$(date +%Y%m%d)" >> $GITHUB_ENV
 
     - name: Build the Docker image
-      run: docker build -t ${{ secrets.DOCKER_USERNAME }}/parrotbox:${{ env.IMG_TAG }} .
+      run: docker build --platform linux/amd64 -t ${{ env.IMG_NAME }}:${{ env.IMG_TAG }} .
 
     - name: Push the Docker image
-      run: docker push ${{ secrets.DOCKER_USERNAME }}/parrotbox:${{ env.IMG_TAG }}
+      run: docker push ${{ env.IMG_NAME }}:${{ env.IMG_TAG }}
