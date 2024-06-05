@@ -1,0 +1,28 @@
+name: Build Image and Publish to Docker Hub
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4    
+
+    - name: Log in to Docker Hub
+      run: docker login -u "${{ secrets.DOCKER_USERNAME }}" -p "${{ secrets.DOCKER_PASSWORD }}"
+
+    - name: Create tag
+      run:  echo "IMG_TAG=$(date +%Y%m%d)" >> $GITHUB_ENV
+
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag ${{ secrets.DOCKER_USERNAME }}/parrotbox:${{ env.IMG_TAG }}
+
+    - name: Push the Docker image
+      run: docker push ${{ secrets.DOCKER_USERNAME }}/parrotbox:${{ env.IMG_TAG }}
