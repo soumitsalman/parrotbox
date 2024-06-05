@@ -22,7 +22,7 @@ jobs:
       run:  echo "IMG_TAG=$(date +%Y%m%d)" >> $GITHUB_ENV
 
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag ${{ secrets.DOCKER_USERNAME }}/parrotbox:${{ env.IMG_TAG }}
+      run: docker build -t ${{ secrets.DOCKER_USERNAME }}/parrotbox:${{ env.IMG_TAG }} .
 
     - name: Push the Docker image
       run: docker push ${{ secrets.DOCKER_USERNAME }}/parrotbox:${{ env.IMG_TAG }}
