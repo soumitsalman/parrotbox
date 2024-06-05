@@ -3,3 +3,4 @@
 ./localtest.py
 models
 .locks
+docker-compose.yml

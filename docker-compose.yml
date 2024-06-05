@@ -1,0 +1,12 @@
+# example of how to run through docker-compose
+version: '3.8'
+
+services:
+  parrotbox:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+    - PORT=9000
+    ports:
+      - "9000:9000"

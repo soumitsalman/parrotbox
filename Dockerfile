@@ -13,10 +13,11 @@ RUN wget https://huggingface.co/nomic-ai/nomic-embed-text-v1.5-GGUF/resolve/main
 
 ENV EMBEDDER_MODEL /app/nomic-embed-text-v1.5.Q8_0.gguf
 ENV EMBEDDER_CTX 8191
+ENV PORT 8080
 
 COPY . . 
 RUN pip install -r requirements.txt
 
-EXPOSE 8080
+EXPOSE ${PORT}
 
-CMD [ "fastapi", "run" , "server.py", "--port", "8080"]
+CMD sh -c "fastapi run server.py --port ${PORT}"
